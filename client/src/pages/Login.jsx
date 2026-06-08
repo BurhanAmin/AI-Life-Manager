@@ -14,53 +14,44 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-
     if (isSignup) {
       const { error } = await supabase.auth.signUp({ email, password })
-      if (error) return setError(error.message), setLoading(false)
+      if (error) { setError(error.message); setLoading(false); return }
       navigate('/onboarding')
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) return setError(error.message), setLoading(false)
+      if (error) { setError(error.message); setLoading(false); return }
       navigate('/dashboard')
     }
-
     setLoading(false)
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>AI Life Manager</h1>
-        <p style={styles.subtitle}>{isSignup ? 'Create your account' : 'Welcome back'}</p>
-
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            style={styles.input}
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            style={styles.input}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <p style={styles.error}>{error}</p>}
-          <button style={styles.button} type="submit" disabled={loading}>
-            {loading ? 'Loading...' : isSignup ? 'Sign Up' : 'Log In'}
+    <div style={s.page}>
+      <div style={s.container}>
+        <div style={s.header}>
+          <h1 style={s.wordmark}>Advisor</h1>
+          <p style={s.tagline}>Your personal life advisor</p>
+        </div>
+        <div style={s.divider} />
+        <form onSubmit={handleSubmit} style={s.form}>
+          <div style={s.field}>
+            <label style={s.label}>Email</label>
+            <input style={s.input} type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+          <div style={s.field}>
+            <label style={s.label}>Password</label>
+            <input style={s.input} type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          </div>
+          {error && <p style={s.error}>{error}</p>}
+          <button style={s.btn} type="submit" disabled={loading}>
+            {loading ? 'Please wait...' : isSignup ? 'Create account' : 'Sign in'}
           </button>
         </form>
-
-        <p style={styles.toggle}>
-          {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <span style={styles.link} onClick={() => setIsSignup(!isSignup)}>
-            {isSignup ? 'Log in' : 'Sign up'}
+        <p style={s.toggle}>
+          {isSignup ? 'Already have an account? ' : 'No account yet? '}
+          <span style={s.link} onClick={() => setIsSignup(!isSignup)}>
+            {isSignup ? 'Sign in' : 'Create one'}
           </span>
         </p>
       </div>
@@ -68,15 +59,19 @@ export default function Login() {
   )
 }
 
-const styles = {
-  container: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0f0f' },
-  card: { background: '#1a1a1a', padding: '40px', borderRadius: '16px', width: '100%', maxWidth: '400px', boxShadow: '0 4px 24px rgba(0,0,0,0.4)' },
-  title: { color: '#ffffff', fontSize: '24px', fontWeight: '700', marginBottom: '4px', textAlign: 'center' },
-  subtitle: { color: '#888', fontSize: '14px', marginBottom: '32px', textAlign: 'center' },
-  form: { display: 'flex', flexDirection: 'column', gap: '12px' },
-  input: { padding: '12px 16px', borderRadius: '8px', border: '1px solid #333', background: '#111', color: '#fff', fontSize: '14px', outline: 'none' },
-  button: { padding: '12px', borderRadius: '8px', border: 'none', background: '#6c63ff', color: '#fff', fontSize: '15px', fontWeight: '600', cursor: 'pointer', marginTop: '8px' },
-  error: { color: '#ff4d4d', fontSize: '13px', margin: '0' },
-  toggle: { color: '#888', fontSize: '13px', textAlign: 'center', marginTop: '20px' },
-  link: { color: '#6c63ff', cursor: 'pointer', fontWeight: '600' }
+const s = {
+  page: { minHeight: '100vh', background: '#faf8f3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' },
+  container: { width: '100%', maxWidth: '360px' },
+  header: { marginBottom: '28px' },
+  wordmark: { fontFamily: 'Playfair Display, serif', fontSize: '28px', fontWeight: '500', color: '#1a1918', marginBottom: '6px' },
+  tagline: { fontSize: '13px', color: '#8a8580', fontWeight: '300' },
+  divider: { borderTop: '1px solid #e2ddd4', marginBottom: '28px' },
+  form: { display: 'flex', flexDirection: 'column', gap: '18px' },
+  field: { display: 'flex', flexDirection: 'column', gap: '6px' },
+  label: { fontSize: '12px', color: '#8a8580', fontWeight: '400', letterSpacing: '0.3px' },
+  input: { padding: '10px 12px', border: '1px solid #e2ddd4', borderRadius: '6px', background: '#fff', fontSize: '14px', color: '#1a1918', outline: 'none' },
+  btn: { marginTop: '4px', padding: '11px', border: '1px solid #1a1918', borderRadius: '6px', background: '#1a1918', color: '#faf8f3', fontSize: '13px', fontWeight: '500', cursor: 'pointer', letterSpacing: '0.2px' },
+  error: { fontSize: '12px', color: '#c0392b' },
+  toggle: { marginTop: '20px', fontSize: '12px', color: '#8a8580', textAlign: 'center' },
+  link: { color: '#1a1918', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' }
 }

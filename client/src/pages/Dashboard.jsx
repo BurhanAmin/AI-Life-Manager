@@ -24,114 +24,138 @@ export default function Dashboard() {
         setGoals(goalsRes.data)
         setHabits(habitsRes.data)
         setEvents(eventsRes.data)
-      } catch (err) {
-        console.error(err)
-      }
+      } catch (err) { console.error(err) }
       setLoading(false)
     }
     fetchData()
   }, [])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate('/login')
-  }
 
   const startSession = async (type) => {
     const res = await api.post('/sessions/start', { type })
     navigate('/chat', { state: { session_id: res.data.id, type } })
   }
 
-  if (loading) return <div style={styles.loading}>Loading...</div>
+  const greeting = () => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Good morning'
+    if (h < 17) return 'Good afternoon'
+    return 'Good evening'
+  }
+
+  const formatDate = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
+  if (loading) return <div style={s.loading}>Loading...</div>
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.greeting}>Hey, {user?.full_name?.split(' ')[0]} 👋</h1>
-          <p style={styles.subGreeting}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-        </div>
-        <button style={styles.logoutBtn} onClick={handleLogout}>Log out</button>
-      </div>
+    <div style={s.page}>
+      <div style={s.inner}>
 
-      {/* Session Buttons */}
-      <div style={styles.sessionRow}>
-        <button style={{ ...styles.sessionBtn, background: '#1e3a2f' }} onClick={() => startSession('morning')}>
-          <span style={styles.sessionIcon}>🌅</span>
-          <span style={styles.sessionLabel}>Morning Check-in</span>
-        </button>
-        <button style={{ ...styles.sessionBtn, background: '#1e1b3a' }} onClick={() => startSession('chat')}>
-          <span style={styles.sessionIcon}>💬</span>
-          <span style={styles.sessionLabel}>Chat with Advisor</span>
-        </button>
-        <button style={{ ...styles.sessionBtn, background: '#3a1e1e' }} onClick={() => startSession('evening')}>
-          <span style={styles.sessionIcon}>🌙</span>
-          <span style={styles.sessionLabel}>Evening Debrief</span>
-        </button>
-      </div>
+        <header style={s.header}>
+          <div>
+            <h1 style={s.greeting}>{greeting()}, {user?.full_name?.split(' ')[0]}.</h1>
+            <p style={s.date}>{formatDate()}</p>
+          </div>
+          <button style={s.logoutBtn} onClick={async () => { await supabase.auth.signOut(); navigate('/login') }}>Sign out</button>
+        </header>
 
-      <div style={styles.grid}>
-        {/* Goals */}
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Your Goals</h3>
-          {goals.length === 0 ? <p style={styles.empty}>No goals yet</p> : goals.map(g => (
-            <div key={g.id} style={styles.goalItem}>
-              <span style={styles.goalArea}>{g.area}</span>
-              <span style={styles.goalDesc}>{g.description}</span>
+        <div style={s.divider} />
+
+        <section style={s.section}>
+          <p style={s.sectionLabel}>Start a session</p>
+          <div style={s.sessionGrid}>
+            {[
+              { type: 'morning', label: 'Morning check-in', desc: 'Review your day ahead' },
+              { type: 'chat', label: 'Open chat', desc: 'Talk to your advisor' },
+              { type: 'evening', label: 'Evening debrief', desc: 'Reflect and plan tomorrow' }
+            ].map(({ type, label, desc }) => (
+              <button key={type} style={s.sessionCard} onClick={() => startSession(type)}>
+                <span style={s.sessionLabel}>{label}</span>
+                <span style={s.sessionDesc}>{desc}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <div style={s.divider} />
+
+        <div style={s.grid}>
+          <section style={s.card}>
+            <div style={s.cardHeader}>
+              <p style={s.sectionLabel}>Goals</p>
             </div>
-          ))}
+            {goals.length === 0
+              ? <p style={s.empty}>No goals set.</p>
+              : goals.map(g => (
+                <div key={g.id} style={s.goalItem}>
+                  <span style={s.goalArea}>{g.area}</span>
+                  <span style={s.goalDesc}>{g.description}</span>
+                </div>
+              ))}
+          </section>
+
+          <section style={s.card}>
+            <div style={s.cardHeader}>
+              <p style={s.sectionLabel}>Habits</p>
+              <button style={s.cardLink} onClick={() => navigate('/habits')}>Log today</button>
+            </div>
+            {habits.length === 0
+              ? <p style={s.empty}>No habits tracked.</p>
+              : habits.map(h => (
+                <div key={h.id} style={s.habitItem}>
+                  <div style={s.habitDot} />
+                  <span style={s.habitName}>{h.name}</span>
+                </div>
+              ))}
+          </section>
+
+          <section style={s.card}>
+            <div style={s.cardHeader}>
+              <p style={s.sectionLabel}>Upcoming</p>
+              <button style={s.cardLink} onClick={() => navigate('/calendar')}>Add event</button>
+            </div>
+            {events.length === 0
+              ? <p style={s.empty}>Nothing scheduled.</p>
+              : events.slice(0, 4).map(e => (
+                <div key={e.id} style={s.eventItem}>
+                  <span style={s.eventDate}>{e.event_date}</span>
+                  <span style={s.eventTitle}>{e.title}</span>
+                </div>
+              ))}
+          </section>
         </div>
 
-        {/* Habits */}
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Habits Being Tracked</h3>
-          {habits.length === 0 ? <p style={styles.empty}>No habits yet</p> : habits.map(h => (
-            <div key={h.id} style={styles.habitItem}>
-              <span style={styles.habitDot}>●</span>
-              <span style={styles.habitName}>{h.name}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Calendar */}
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Upcoming Events</h3>
-          {events.length === 0 ? <p style={styles.empty}>Nothing scheduled</p> : events.slice(0, 5).map(e => (
-            <div key={e.id} style={styles.eventItem}>
-              <span style={styles.eventDate}>{e.event_date}</span>
-              <span style={styles.eventTitle}>{e.title}</span>
-              <span style={styles.eventType}>{e.type}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   )
 }
 
-const styles = {
-  container: { minHeight: '100vh', background: '#0f0f0f', padding: '32px', maxWidth: '900px', margin: '0 auto' },
-  loading: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0f0f', color: '#fff' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' },
-  greeting: { color: '#fff', fontSize: '26px', fontWeight: '700', margin: 0 },
-  subGreeting: { color: '#666', fontSize: '14px', marginTop: '4px' },
-  logoutBtn: { background: 'none', border: '1px solid #333', color: '#888', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' },
-  sessionRow: { display: 'flex', gap: '12px', marginBottom: '32px' },
-  sessionBtn: { flex: 1, padding: '20px', borderRadius: '12px', border: '1px solid #333', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' },
-  sessionIcon: { fontSize: '24px' },
-  sessionLabel: { color: '#fff', fontSize: '13px', fontWeight: '600' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' },
-  card: { background: '#1a1a1a', borderRadius: '12px', padding: '20px', border: '1px solid #222' },
-  cardTitle: { color: '#fff', fontSize: '15px', fontWeight: '600', marginBottom: '16px', marginTop: 0 },
-  empty: { color: '#555', fontSize: '13px' },
-  goalItem: { display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '12px' },
-  goalArea: { color: '#6c63ff', fontSize: '11px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' },
-  goalDesc: { color: '#ccc', fontSize: '13px' },
-  habitItem: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' },
-  habitDot: { color: '#6c63ff', fontSize: '8px' },
-  habitName: { color: '#ccc', fontSize: '13px' },
-  eventItem: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' },
-  eventDate: { color: '#666', fontSize: '11px', minWidth: '80px' },
-  eventTitle: { color: '#ccc', fontSize: '13px', flex: 1 },
-  eventType: { color: '#444', fontSize: '11px' }
+const s = {
+  page: { minHeight: '100vh', background: '#faf8f3' },
+  inner: { maxWidth: '860px', margin: '0 auto', padding: '48px 32px' },
+  loading: { minHeight: '100vh', background: '#faf8f3', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: '#8a8580' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' },
+  greeting: { fontFamily: 'Playfair Display, serif', fontSize: '32px', fontWeight: '400', color: '#1a1918', marginBottom: '6px' },
+  date: { fontSize: '13px', color: '#8a8580', fontWeight: '300' },
+  logoutBtn: { background: 'none', border: 'none', fontSize: '12px', color: '#b0aca6', cursor: 'pointer', padding: '4px 0' },
+  divider: { borderTop: '1px solid #e2ddd4', marginBottom: '32px' },
+  section: { marginBottom: '32px' },
+  sectionLabel: { fontSize: '11px', color: '#b0aca6', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '14px', fontWeight: '500' },
+  sessionGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' },
+  sessionCard: { padding: '18px 16px', border: '1px solid #e2ddd4', borderRadius: '8px', background: '#fff', cursor: 'pointer', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '4px', transition: 'border-color 0.15s' },
+  sessionLabel: { fontSize: '13px', fontWeight: '500', color: '#1a1918' },
+  sessionDesc: { fontSize: '11px', color: '#b0aca6', fontWeight: '300' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' },
+  card: { background: '#fff', border: '1px solid #e2ddd4', borderRadius: '8px', padding: '20px' },
+  cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+  cardLink: { background: 'none', border: 'none', fontSize: '11px', color: '#8a8580', cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: '3px' },
+  empty: { fontSize: '13px', color: '#c0c0b8' },
+  goalItem: { marginBottom: '14px' },
+  goalArea: { display: 'block', fontSize: '10px', color: '#b0aca6', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: '2px' },
+  goalDesc: { fontSize: '13px', color: '#3a3835', lineHeight: '1.5' },
+  habitItem: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' },
+  habitDot: { width: '4px', height: '4px', borderRadius: '50%', background: '#c0c0b8', flexShrink: 0 },
+  habitName: { fontSize: '13px', color: '#3a3835' },
+  eventItem: { display: 'flex', gap: '12px', alignItems: 'baseline', marginBottom: '12px' },
+  eventDate: { fontSize: '11px', color: '#b0aca6', minWidth: '72px', fontWeight: '300' },
+  eventTitle: { fontSize: '13px', color: '#3a3835' }
 }
