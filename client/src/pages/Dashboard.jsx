@@ -32,7 +32,7 @@ export default function Dashboard() {
 
   const startSession = async (type) => {
     const res = await api.post('/sessions/start', { type })
-    navigate('/chat', { state: { session_id: res.data.id, type } })
+    navigate('/chat', { state: { session_id: res.data.id, type , initialMessages: res.data.messages || []} })
   }
 
   const greeting = () => {
@@ -56,6 +56,7 @@ export default function Dashboard() {
             <p style={s.date}>{formatDate()}</p>
           </div>
           <button style={s.logoutBtn} onClick={async () => { await supabase.auth.signOut(); navigate('/login') }}>Sign out</button>
+          <button style={s.logoutBtn} onClick={() => navigate('/review')}>Weekly review</button>
         </header>
 
         <div style={s.divider} />

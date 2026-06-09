@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Chat from './pages/Chat'
 import Calendar from './pages/Calendar'
 import Habits from './pages/Habits'
+import Review from './pages/Review'
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
         <Route path="/habits" element={<ProtectedRoute><Habits /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="/review" element={<ProtectedRoute><Review /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

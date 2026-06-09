@@ -13,6 +13,8 @@ app.use('/api/goals', require('./routes/goals'))
 app.use('/api/habits', require('./routes/habits'))
 app.use('/api/calendar', require('./routes/calendar'))
 app.use('/api/sessions', require('./routes/sessions'))
+app.use('/api/voice', require('./routes/voice'))
+app.use('/api/review', require('./routes/review'))
 
 app.get('/', (req, res) => res.send('AI Life Manager API running'))
 
