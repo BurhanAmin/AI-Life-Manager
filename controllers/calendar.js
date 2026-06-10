@@ -1,10 +1,20 @@
 const supabase = require('../config/supabase')
 
 const createEvent = async (req, res) => {
-  const { title, event_date, event_time, type, notes } = req.body
+  const { title, event_date, event_time, event_end_time, type, notes } = req.body
   const { data, error } = await supabase
     .from('calendar_events')
-    .insert([{ user_id: req.user.id, title, event_date, event_time, type, notes }])
+    .insert([
+      {
+        user_id: req.user.id,
+        title,
+        event_date,
+        event_time,
+        event_end_time: event_end_time || null,
+        type,
+        notes,
+      },
+    ])
     .select()
     .single()
 

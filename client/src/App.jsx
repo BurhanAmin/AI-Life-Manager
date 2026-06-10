@@ -7,6 +7,9 @@ import Chat from './pages/Chat'
 import Calendar from './pages/Calendar'
 import Habits from './pages/Habits'
 import Review from './pages/Review'
+import Suggestions from './pages/Suggestions'
+  
+   
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -26,6 +29,7 @@ export default function App() {
         <Route path="/habits" element={<ProtectedRoute><Habits /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/login" />} />
         <Route path="/review" element={<ProtectedRoute><Review /></ProtectedRoute>} />
+        <Route path="/suggestions" element={<ProtectedRoute><Suggestions /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

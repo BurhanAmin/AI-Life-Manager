@@ -57,6 +57,7 @@ export default function Dashboard() {
           </div>
           <button style={s.logoutBtn} onClick={async () => { await supabase.auth.signOut(); navigate('/login') }}>Sign out</button>
           <button style={s.logoutBtn} onClick={() => navigate('/review')}>Weekly review</button>
+          <button onClick={() => navigate('/suggestions')} style={{ background: 'none', border: 'none', fontSize: '12px', color: '#b0aca6', cursor: 'pointer' }}> Suggestions </button>
         </header>
 
         <div style={s.divider} />

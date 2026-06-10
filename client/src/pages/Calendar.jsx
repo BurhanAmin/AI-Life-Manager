@@ -7,7 +7,7 @@ export default function Calendar() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', event_date: '', event_time: '', type: 'other', notes: '' })
+  const [form, setForm] = useState({ title: '', event_date: '', event_time: '', event_end_time: '', type: 'other', notes: '' })
   const [saving, setSaving] = useState(false)
   const today = new Date().toISOString().split('T')[0]
 
@@ -23,7 +23,7 @@ export default function Calendar() {
     if (!form.title || !form.event_date) return
     setSaving(true)
     await api.post('/calendar', form)
-    setForm({ title: '', event_date: '', event_time: '', type: 'other', notes: '' })
+    setForm({ title: '', event_date: '', event_time: '', event_end_time: '', type: 'other', notes: '' })
     setShowForm(false)
     await fetchEvents()
     setSaving(false)
@@ -73,8 +73,12 @@ export default function Calendar() {
                 <input style={s.input} type="date" value={form.event_date} onChange={e => setForm({ ...form, event_date: e.target.value })} />
               </div>
               <div style={s.field}>
-                <label style={s.label}>Time (optional)</label>
+                <label style={s.label}>Start time (optional)</label>
                 <input style={s.input} type="time" value={form.event_time} onChange={e => setForm({ ...form, event_time: e.target.value })} />
+              </div>
+              <div style={s.field}>
+                <label style={s.label}>End time (optional)</label>
+                <input style={s.input} type="time" value={form.event_end_time} onChange={e => setForm({ ...form, event_end_time: e.target.value })} />
               </div>
             </div>
             <div style={s.field}>
@@ -95,7 +99,10 @@ export default function Calendar() {
                 {e.notes && <span style={s.eventNotes}>{e.notes}</span>}
               </div>
               <div style={s.eventRight}>
-                <span style={s.eventDate}>{e.event_date}{e.event_time ? ` · ${e.event_time}` : ''}</span>
+                <span style={s.eventDate}>
+                  {e.event_date}
+                  {e.event_time ? ` · ${e.event_time}${e.event_end_time ? `–${e.event_end_time}` : ''}` : ''}
+                </span>
                 <button style={s.deleteBtn} onClick={() => handleDelete(e.id)}>Remove</button>
               </div>
             </div>
