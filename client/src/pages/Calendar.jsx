@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/api'
+import GoogleCalendarConnect from '../components/GoogleCalendarConnect'
 
 export default function Calendar() {
   const navigate = useNavigate()
@@ -49,6 +50,8 @@ export default function Calendar() {
             <button style={s.addBtn} onClick={() => setShowForm(!showForm)}>{showForm ? 'Cancel' : 'Add event'}</button>
           </div>
         </header>
+
+        <GoogleCalendarConnect onSynced={fetchEvents} />
 
         <div style={s.divider} />
 
@@ -101,7 +104,7 @@ export default function Calendar() {
               <div style={s.eventRight}>
                 <span style={s.eventDate}>
                   {e.event_date}
-                  {e.event_time ? ` · ${e.event_time}${e.event_end_time ? `–${e.event_end_time}` : ''}` : ''}
+                  {e.event_time ? ` \u00b7 ${e.event_time}${e.event_end_time ? `\u2013${e.event_end_time}` : ''}` : ''}
                 </span>
                 <button style={s.deleteBtn} onClick={() => handleDelete(e.id)}>Remove</button>
               </div>
