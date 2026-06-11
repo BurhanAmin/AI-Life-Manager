@@ -175,6 +175,7 @@ exports.syncCalendar = async (req, res) => {
       const { error } = await supabase
         .from('calendar_events')
         .upsert(row, { onConflict: 'user_id,google_event_id' })
+      if (error) console.error('row upsert failed:', error, '\nrow was:', row)
       if (!error) synced++
     }
 
