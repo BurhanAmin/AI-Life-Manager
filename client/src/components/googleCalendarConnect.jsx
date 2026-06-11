@@ -1,34 +1,58 @@
 import { useState, useEffect } from 'react'
 import api from '../lib/api'
 
-// Drop into Calendar.jsx:  import GoogleCalendarConnect from '../components/GoogleCalendarConnect'
-// then render <GoogleCalendarConnect onSynced={loadEvents} /> near the top of the page.
-// onSynced (optional) is called after a successful sync so the page can refresh its list.
+// Drop into Calendar.jsx:  <GoogleCalendarConnect onSynced={fetchEvents} />
+// Auto-syncs on mount (every time the page opens) when connected.
 export default function GoogleCalendarConnect({ onSynced }) {
   const [status, setStatus] = useState({ connected: false, email: null })
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState('')
 
-  const loadStatus = async () => {
+  // Runs a sync and refreshes the parent list. `silent` skips the big busy state
+  // so the auto-sync on open doesn't flicker the buttons.
+  const runSync = async ({ silent } = {}) => {
+    if (!silent) setBusy(true)
+    if (!silent) setNote('')
     try {
-      const res = await api.get('/google/status')
-      setStatus(res.data)
+      const res = await api.post('/google/sync')
+      setNote(`Synced ${res.data.synced} of ${res.data.total} events.`)
+      onSynced?.()
     } catch (_) {
-      /* leave default */
+      if (!silent) setNote('Sync failed.')
     } finally {
-      setLoading(false)
+      if (!silent) setBusy(false)
     }
   }
 
   useEffect(() => {
-    loadStatus()
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await api.get('/google/status')
+        if (cancelled) return
+        setStatus(res.data)
+        // If connected, pull the latest events automatically on open.
+        if (res.data.connected) {
+          await runSync({ silent: true })
+        }
+      } catch (_) {
+        /* leave default */
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+
     // Surface the result of the OAuth redirect (?google=connected|error)
     const params = new URLSearchParams(window.location.search)
     const g = params.get('google')
     if (g === 'connected') setNote('Google Calendar connected.')
     if (g === 'error') setNote('Connection failed. Please try again.')
     if (g) window.history.replaceState({}, '', window.location.pathname)
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const connect = async () => {
@@ -38,20 +62,6 @@ export default function GoogleCalendarConnect({ onSynced }) {
       window.location.href = res.data.url // hand off to Google consent screen
     } catch (_) {
       setNote('Could not start connection.')
-      setBusy(false)
-    }
-  }
-
-  const sync = async () => {
-    setBusy(true)
-    setNote('')
-    try {
-      const res = await api.post('/google/sync')
-      setNote(`Synced ${res.data.synced} of ${res.data.total} events.`)
-      onSynced?.()
-    } catch (_) {
-      setNote('Sync failed.')
-    } finally {
       setBusy(false)
     }
   }
@@ -80,7 +90,7 @@ export default function GoogleCalendarConnect({ onSynced }) {
         <>
           <div style={styles.body}>Connected as {status.email}</div>
           <div style={styles.row}>
-            <button style={styles.primary} onClick={sync} disabled={busy}>
+            <button style={styles.primary} onClick={() => runSync()} disabled={busy}>
               {busy ? 'Working…' : 'Sync now'}
             </button>
             <button style={styles.ghost} onClick={disconnect} disabled={busy}>
