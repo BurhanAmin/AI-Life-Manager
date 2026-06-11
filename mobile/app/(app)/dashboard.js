@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
-import { ScrollView, View, Text, RefreshControl, Alert } from 'react-native';
+import { ScrollView, View, Text, RefreshControl, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
 import { api } from '../../src/lib/api';
 import { Card, Button } from '../../src/components/ui';
-import { colors, type, space, font } from '../../src/theme';
+import { colors, type, space, font, radius } from '../../src/theme';
 
 const MODE_LABEL = {
   RECHARGE: 'Recharge',
@@ -58,7 +58,13 @@ export default function Dashboard() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
         <Text style={type.label}>Today</Text>
-        <Text style={[type.h1, { marginBottom: space.lg }]}>Dashboard</Text>
+        <Text style={[type.h1, { marginBottom: space.sm }]}>Dashboard</Text>
+
+        <View style={{ flexDirection: 'row', gap: space.md, marginBottom: space.lg }}>
+          <Text onPress={() => router.push('/(app)/habits')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Habits</Text>
+          <Text onPress={() => router.push('/(app)/calendar')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Calendar</Text>
+          <Text onPress={() => router.push('/(app)/suggestions')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Suggestions</Text>
+        </View>
 
         {error && (
           <Card style={{ borderColor: colors.danger }}>
@@ -70,6 +76,25 @@ export default function Dashboard() {
             </Text>
           </Card>
         )}
+
+        <Card>
+          <Text style={type.label}>Start a session</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm, marginTop: space.sm }}>
+            {[
+              { type: 'morning', label: 'Morning' },
+              { type: 'evening', label: 'Evening' },
+              { type: 'chat', label: 'Open chat' },
+            ].map((s) => (
+              <TouchableOpacity
+                key={s.type}
+                onPress={() => router.push({ pathname: '/(app)/chat', params: { type: s.type } })}
+                style={{ borderWidth: 1, borderColor: colors.lineStrong, borderRadius: radius.sm, paddingVertical: 10, paddingHorizontal: 16 }}
+              >
+                <Text style={{ fontFamily: font.bodyMed, fontSize: 13, color: colors.ink }}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Card>
 
         <Card>
           <Text style={type.label}>Mode</Text>

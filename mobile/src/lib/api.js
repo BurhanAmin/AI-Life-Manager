@@ -32,6 +32,10 @@ export const api = {
   patch: (p, body) => request(p, { method: 'PATCH', body }),
   del: (p) => request(p, { method: 'DELETE' }),
 
+  // Sessions (chat). Streaming itself is done in chat.js via expo/fetch.
+  startSession: (type) => request('/api/sessions/start', { method: 'POST', body: { type } }),
+  endSession: (session_id) => request('/api/sessions/end', { method: 'POST', body: { session_id } }),
+
   // Phase 3 endpoints, reused as-is by the mobile client:
   burnoutStatus: () => request('/api/burnout/status'),
   suggestions: (status) => request(`/api/suggestions${status ? `?status=${status}` : ''}`),
