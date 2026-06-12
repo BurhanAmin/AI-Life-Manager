@@ -9,9 +9,9 @@ const STATE_SECRET =
   process.env.OAUTH_STATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173'
 
-function signState(userId) {
+function signState(userId, mobileRedirect) {
   const payload = Buffer.from(
-    JSON.stringify({ uid: userId, t: Date.now() })
+    JSON.stringify({ uid: userId, t: Date.now(), m: mobileRedirect || null })
   ).toString('base64url')
   const sig = crypto
     .createHmac('sha256', STATE_SECRET)
@@ -32,7 +32,7 @@ function verifyState(state) {
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null
   const data = JSON.parse(Buffer.from(payload, 'base64url').toString())
   if (Date.now() - data.t > 10 * 60 * 1000) return null // 10 min expiry
-  return data.uid
+  return data // was: return data.uid
 }
 
 // Build an OAuth client loaded with the user's stored tokens.
@@ -73,7 +73,7 @@ exports.getAuthUrl = async (req, res) => {
       access_type: 'offline', // request a refresh token
       prompt: 'consent', // force refresh token every time (safe for re-connects)
       scope: SCOPES,
-      state: signState(req.user.id),
+      state: signState(req.user.id, req.query.mobile_redirect),
     })
     res.json({ url })
   } catch (e) {
@@ -84,10 +84,13 @@ exports.getAuthUrl = async (req, res) => {
 
 // GET /api/google/callback  (PUBLIC - Google redirects the browser here)
 exports.oauthCallback = async (req, res) => {
+  let mobileRedirect = null
   try {
-    const userId = verifyState(req.query.state)
-    if (!userId)
+    const state = verifyState(req.query.state)
+    if (!state)
       return res.redirect(`${CLIENT_URL}/calendar?google=error&reason=state`)
+    const userId = state.uid
+    mobileRedirect = state.m
 
     const client = createOAuthClient()
     const { tokens } = await client.getToken(req.query.code)
@@ -105,16 +108,19 @@ exports.oauthCallback = async (req, res) => {
       connected_email: profile.email,
       updated_at: new Date().toISOString(),
     }
-    // Only overwrite the refresh token if Google returned a new one.
     if (tokens.refresh_token) row.refresh_token = tokens.refresh_token
 
     await supabase
       .from('google_tokens')
       .upsert(row, { onConflict: 'user_id' })
 
+    if (mobileRedirect)
+      return res.redirect(`${mobileRedirect}?google=connected`)
     res.redirect(`${CLIENT_URL}/calendar?google=connected`)
   } catch (e) {
     console.error('google callback error', e)
+    if (mobileRedirect)
+      return res.redirect(`${mobileRedirect}?google=error`)
     res.redirect(`${CLIENT_URL}/calendar?google=error`)
   }
 }
