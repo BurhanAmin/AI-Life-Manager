@@ -6,14 +6,31 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": { "backgroundColor": "#ffffff", "resizeMode": "contain" },
-    "ios": { "supportsTablet": true, "bundleIdentifier": "com.yourname.ailifemanager" },
-    "android": { "package": "com.yourname.ailifemanager" },
-    "plugins": ["expo-router", "expo-secure-store", "expo-font"],
+    "splash": {
+      "backgroundColor": "#ffffff",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourname.ailifemanager"
+    },
+    "android": {
+      "package": "com.yourname.ailifemanager"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-notifications",
+      "expo-web-browser"
+    ],
     "extra": {
       "apiUrl": "http://192.168.1.21:3001",
       "supabaseUrl": "https://duvkmualeyeaaqjhmghj.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dmttdWFsZXllYWFxamhtZ2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDIwODgsImV4cCI6MjA5NjQxODA4OH0.oyReyIOzSuqCBN9r1T2MmRd9A2dE2R0H-i3urD39i9I"
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR1dmttdWFsZXllYWFxamhtZ2hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NDIwODgsImV4cCI6MjA5NjQxODA4OH0.oyReyIOzSuqCBN9r1T2MmRd9A2dE2R0H-i3urD39i9I",
+      "eas": {
+        "projectId": "your-project-id"
+      }
     }
   }
 }

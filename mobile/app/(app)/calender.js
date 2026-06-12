@@ -3,6 +3,7 @@ import { ScrollView, View, Text, TextInput, TouchableOpacity, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { api } from '../../src/lib/api';
+import GoogleCalendarConnect from '../../src/components/GoogleCalendarConnect';
 import { colors, type, space, radius, font } from '../../src/theme';
 
 const TYPES = ['exam', 'deadline', 'meeting', 'other'];
@@ -105,6 +106,8 @@ export default function Calendar() {
         </View>
 
         <View style={{ height: 1, backgroundColor: colors.line, marginVertical: space.md }} />
+
+        <GoogleCalendarConnect onSynced={fetchEvents} />
 
         {showForm && (
           <View style={{ borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: space.md, marginBottom: space.lg }}>

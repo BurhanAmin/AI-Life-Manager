@@ -64,6 +64,7 @@ export default function Dashboard() {
           <Text onPress={() => router.push('/(app)/habits')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Habits</Text>
           <Text onPress={() => router.push('/(app)/calendar')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Calendar</Text>
           <Text onPress={() => router.push('/(app)/suggestions')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Suggestions</Text>
+          <Text onPress={() => router.push('/(app)/review')} style={{ fontFamily: font.bodyMed, fontSize: 14, color: colors.ink, textDecorationLine: 'underline' }}>Review</Text>
         </View>
 
         {error && (
