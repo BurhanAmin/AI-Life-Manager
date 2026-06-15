@@ -3,11 +3,19 @@ const cors = require('cors')
 require('dotenv').config()
 
 const app = express()
+const notificationsRouter = require('./routes/notifications')
 
-app.use(cors())
+// Restrict CORS to known frontends instead of allowing every origin.
+// CLIENT_URL is your deployed Vercel URL (set in Render's env vars).
+const allowedOrigins = [
+  'http://localhost:5173', // local Vite dev
+  process.env.CLIENT_URL,  // production frontend
+].filter(Boolean)
+
+app.use(cors({ origin: allowedOrigins }))
 app.use(express.json())
 
-// Routes (we'll add these as we build)
+// Routes
 app.use('/api/users', require('./routes/users'))
 app.use('/api/goals', require('./routes/goals'))
 app.use('/api/habits', require('./routes/habits'))

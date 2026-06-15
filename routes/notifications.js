@@ -1,12 +1,10 @@
+// routes/notifications.js  (CommonJS, matches your googleCalendar route style)
+const express = require('express')
+const router = express.Router()
+const auth = require('../middleware/auth')
+const supabase = require('../config/supabase')
 
-
-import express from 'express';
-import { supabaseAdmin } from '../lib/supabase.js'; // adjust path to your admin client
-import { requireAuth } from '../middleware/auth.js'; // adjust to your existing middleware
-
-const router = express.Router();
-
-// 1) SQL — run once in Supabase:
+// SQL to run once in Supabase:
 //
 // create table if not exists push_tokens (
 //   id uuid primary key default gen_random_uuid(),
@@ -17,36 +15,36 @@ const router = express.Router();
 //   unique (user_id, token)
 // );
 
-// Mobile app calls this after permission is granted.
-router.post('/register-token', requireAuth, async (req, res) => {
-  const { token, platform } = req.body;
-  if (!token) return res.status(400).json({ error: 'token required' });
+// POST /api/notifications/register-token  (authed)
+router.post('/register-token', auth, async (req, res) => {
+  const { token, platform } = req.body
+  if (!token) return res.status(400).json({ error: 'token required' })
   try {
-    const { error } = await supabaseAdmin
-      .from('push_tokens')
-      .upsert(
-        { user_id: req.user.id, token, platform, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id,token' }
-      );
-    if (error) throw error;
-    res.json({ ok: true });
+    const { error } = await supabase.from('push_tokens').upsert(
+      {
+        user_id: req.user.id,
+        token,
+        platform,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,token' }
+    )
+    if (error) throw error
+    res.json({ ok: true })
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('register-token error', e)
+    res.status(500).json({ error: e.message })
   }
-});
+})
 
-export default router;
-
-// ---------------------------------------------------------------------------
-// 2) Sender helper — import where you trigger notifications (cron, etc.)
-// Uses Expo's push API directly, so no extra dependency is required.
-
-export async function sendPushToUser(userId, { title, body, data }) {
-  const { data: rows, error } = await supabaseAdmin
+// Reusable sender — import where you trigger notifications (cron, etc.)
+// Uses Expo's push API directly, so no extra dependency is needed.
+async function sendPushToUser(userId, { title, body, data }) {
+  const { data: rows, error } = await supabase
     .from('push_tokens')
     .select('token')
-    .eq('user_id', userId);
-  if (error || !rows?.length) return;
+    .eq('user_id', userId)
+  if (error || !rows || !rows.length) return
 
   const messages = rows.map((r) => ({
     to: r.token,
@@ -54,23 +52,29 @@ export async function sendPushToUser(userId, { title, body, data }) {
     title,
     body,
     data: data || {},
-  }));
+  }))
 
   const resp = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify(messages),
-  });
-  const result = await resp.json();
+  })
+  const result = await resp.json()
 
-  // Prune tokens Expo reports as no longer registered (e.g. app uninstalled).
-  const receipts = result?.data || [];
+  // Prune tokens Expo says are dead (app uninstalled, etc.)
+  const receipts = (result && result.data) || []
   const dead = receipts
-    .map((rcpt, i) => (rcpt.status === 'error' && rcpt.details?.error === 'DeviceNotRegistered' ? messages[i].to : null))
-    .filter(Boolean);
+    .map((rcpt, i) =>
+      rcpt.status === 'error' && rcpt.details && rcpt.details.error === 'DeviceNotRegistered'
+        ? messages[i].to
+        : null
+    )
+    .filter(Boolean)
   if (dead.length) {
-    await supabaseAdmin.from('push_tokens').delete().in('token', dead);
+    await supabase.from('push_tokens').delete().in('token', dead)
   }
-  return result;
+  return result
 }
 
+module.exports = router
+module.exports.sendPushToUser = sendPushToUser
